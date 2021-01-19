@@ -1,0 +1,30 @@
+install.packages("tidyverse")
+library("tidyverse")
+
+#then I generate subset of the data by filtering the segment variable. in the subset I analyze the behavior of men, 
+#where those treated with ane mail campaign are coded 1, and the rest 0
+
+male_df = email.c %>%
+  filter(segment!="Womens E-Mail") %>%
+  mutate(treatment = if_else(segment=="Mens E-Mail", 1, 0))
+
+#in another table the summary of conversion and spend variable are presented, so that the spend can be later pulled forming 
+#a case for a t-test that shows statistically significant difference between the groups rejecting the null hypothesis on 95% CI
+
+summary_by_segment = male_df %>%
+  group_by(treatment) %>%
+  summarise(conversion_rate=mean(conversion),
+            spend_mean=mean(spend),
+            count=n()
+  )
+
+mens_mail = male_df %>%
+  filter(treatment==1) %>%
+  pull(spend)
+
+no_mail = male_df %>%
+  filter(treatment==0) %>%
+  pull(spend)
+
+rct_ttest = t.test(mens_mail, no_mail, var.equal=TRUE)
+print(rct_ttest)
